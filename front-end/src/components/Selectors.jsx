@@ -3,10 +3,10 @@ import React from "react";
 export default function Selectors() {
   return (
     <div
-      className="
+      className='
 		z-10 
 		fixed 
-		w-[360px] 
+		w-1/6 
 		h-screen 
 		flex 
 		flex-col 
@@ -18,9 +18,9 @@ export default function Selectors() {
 		rounded-r-[40px]
 		shadow-black
 		shadow-2xl
-		"
+		'
     >
-      <p className="text-black text-xl font-poppins mt-10 mx-auto">
+      <p className="text-black text-xl font-poppins mt-10 mx-auto overflow-hidden">
         Filtrar por almacen
       </p>
       <div className="mt-10 w-3/4 mx-auto">

@@ -5,11 +5,13 @@ import PDFcard from "../components/PDFcard";
 import NormalCard from "../components/NormalCard";
 
 export default function Home() {
+
   return (
-    <div className="">
+    <div className="flex">
       <Header />
-			<Selectors />
-      <div className="mt-[140px] ml-[420px] w-3/4">      
+			<Selectors/>
+			<div className="w-1/6"/>
+      <div className="mt-[140px] ml-14 w-3/4">      
         <h2 className="font-poppinsBold text-5xl">Las mejores!</h2>
 				<div className="relative mt-10 grid grid-cols-3 gap-20">
 					<PDFcard/>
