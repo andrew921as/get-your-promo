@@ -9,6 +9,7 @@ module.exports = {
 			},
 			fontFamily: {
 				'poppins': ['/public/fonts/Poppins-Regular.ttf'],
+				'poppinsBold': ['/public/fonts/Poppins-Bold.ttf'],
 			}
 		},
   },
