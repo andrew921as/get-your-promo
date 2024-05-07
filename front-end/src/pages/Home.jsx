@@ -39,7 +39,12 @@ export default function Home() {
   }, []);
 
   const filterPromos = (selectedStores, selectedPromo) => {
-		console.log("SelectedStores",selectedStores,"SelectedPromos",selectedPromo)
+    console.log(
+      "SelectedStores",
+      selectedStores,
+      "SelectedPromos",
+      selectedPromo
+    );
     if (selectedStores.length === 0 && selectedPromo === "All") {
       setFilteredPromos(promos);
       return;
@@ -48,20 +53,21 @@ export default function Home() {
         selectedStores.includes(promo.store)
       );
       setFilteredPromos(filteredPromos);
-			return
-    }else if (selectedStores.length === 0) {
-			const filteredPromos = promos.filter((promo) =>
-				parseInt(promo.discount) >= parseInt(selectedPromo)
-			);
-			setFilteredPromos(filteredPromos);
-			return
-		}else{
-			const filteredPromos = promos.filter((promo) =>
-				selectedStores.includes(promo.store) &&
-				parseInt(promo.discount) >= parseInt(selectedPromo)
-			);
-			setFilteredPromos(filteredPromos);
-		}
+      return;
+    } else if (selectedStores.length === 0) {
+      const filteredPromos = promos.filter(
+        (promo) => parseInt(promo.discount) >= parseInt(selectedPromo)
+      );
+      setFilteredPromos(filteredPromos);
+      return;
+    } else {
+      const filteredPromos = promos.filter(
+        (promo) =>
+          selectedStores.includes(promo.store) &&
+          parseInt(promo.discount) >= parseInt(selectedPromo)
+      );
+      setFilteredPromos(filteredPromos);
+    }
   };
 
   return (
@@ -95,6 +101,7 @@ export default function Home() {
               price={promo.price}
               img={promo.image}
               store={promo.store}
+              link={promo.link}
             />
           ))}
         </div>
