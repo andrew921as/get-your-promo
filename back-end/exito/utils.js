@@ -23,7 +23,9 @@ export async function extractExitoProducts(page) {
 
     const title = await product.$eval("h3", (el) => el.innerText);
 
-    products.push({ discount, title, price, image });
+    const link = await product.$eval("a", (el) => el.href);
+
+    products.push({ discount, title, price, image, store: "Exito", link });
   }
 
   return products;

@@ -3,14 +3,19 @@ import corse from "cors";
 import { chromium } from "playwright";
 import { getExitoProducts } from "./exito/utils.js";
 import { getCarullaProducts } from "./carulla/utils.js";
-import { promisify } from "util";
+import { getFalabellaProducts } from "./falabella/utils.js";
+import { getJumboPdf } from "./jumbo/utils.js";
+import { getAlkostoPdf } from "./alkosto/utils.js";
+import dotenv from "dotenv";
 
 // Redis configuration
-import { getFalabellaProducts } from "./falabella/utils.js";
-
 import { createClient } from "redis";
 
-const client = await createClient()
+dotenv.config();
+
+const client = await createClient({
+  url: process.env.REDIS_URL || "redis://localhost:6379",
+})
   .on("error", (err) => console.log("Redis Client Error", err))
   .connect(); // Create a new Redis client
 
@@ -34,43 +39,17 @@ app.get("/", (req, res) => {
 });
 
 app.get("/alkosto", async (req, res) => {
-  const browser = await chromium.launch(); // Launch the browser
-  const page = await browser.newPage(); // Open a new page
-
-  await page.goto("https://www.alkosto.com/mercado-tiendas-fisicas"); // Navigate to the URL
-
-  // Find an element by its accessibility name
-  const element = await page.locator(
-    'role=link[name="mercado Descarga Catalogo aquí"]'
-  );
-
-  if ((await element.count()) > 0) {
-    const href = await element.getAttribute("href"); // Fetch the href attribute of the element
-
-    // Send the pdf file
-  } else {
-    console.log("No element found with the specified accessibility name.");
-    res
-      .send({
-        response: "No element found with the specified accessibility name.",
-      })
-      .status(404);
-  }
-
-  await browser.close(); // Close the browser
+  try {
+    const alkostoPdf = await client.get("alkostoPdf");
+    res.send({ link: alkostoPdf });
+  } catch (err) {}
 });
 
 app.get("/jumbo", async (req, res) => {
-  const browser = await chromium.launch(); // Launch the browser
-  const page = await browser.newPage(); // Open a new page
-
-  await page.goto("https://www.tiendasjumbo.co/ofertas"); // Navigate to the URL
-
-  // Go to the Jumbo website and create a PDF of the promotions website
-  await page.pdf({ path: "./pdfs/jumbo-promotions.pdf" });
-
-  // Return the PDF link
-  res.send({ link: `http://${req.headers.host}/pdfs/jumbo-promotions.pdf` });
+  try {
+    const jumboPdf = await client.get("jumboPdf");
+    res.send({ link: jumboPdf });
+  } catch (err) {}
 });
 
 app.get("/exito", async (req, res) => {
@@ -89,22 +68,70 @@ app.get("/carulla", async (req, res) => {
 
 app.get("/falabella", async (req, res) => {
   try {
-    const falabellaProducts = await getFalabellaProducts();
-    res.send(falabellaProducts);
+    const fallabelaProducts = await client.get("fallabelaProducts");
+    res.send(JSON.parse(fallabelaProducts));
   } catch (err) {}
 });
 
-const saveAllProducts = async () => {
-  console.log("Saving all products to the Redis database...");
+app.get("/all", async (req, res) => {
+  try {
+    const exitoProducts = await client.get("exitoProducts");
+    const fallabelaProducts = await client.get("fallabelaProducts");
 
-  // const carullaProducts = await getCarullaProducts();
-  // console.log(carullaProducts);
+    // Unify the products and send them as a response
+    res.send([...JSON.parse(exitoProducts), ...JSON.parse(fallabelaProducts)]);
+  } catch (err) {}
+});
 
+app.get("/resave", async (req, res) => {
   const exitoProducts = await getExitoProducts();
-  console.log(exitoProducts);
-
   // Save the products to the Redis database
   await client.set("exitoProducts", JSON.stringify(exitoProducts));
+
+  const fallabelaProducts = await getFalabellaProducts();
+  // Save the products to the Redis database
+  await client.set("fallabelaProducts", JSON.stringify(fallabelaProducts));
+
+  const jumboPdf = await getJumboPdf();
+  // Save the products to the Redis database
+  await client.set("jumboPdf", jumboPdf);
+
+  const alkostoPdf = await getAlkostoPdf();
+  // Save the products to the Redis database
+  await client.set("alkostoPdf", alkostoPdf);
+
+  res.send("Products were saved to the database.");
+});
+
+const saveAllProducts = async () => {
+  if (!(await client.get("exitoProducts"))) {
+    console.log("Saving exito products to the Redis database...");
+    const exitoProducts = await getExitoProducts();
+    // Save the products to the Redis database
+    await client.set("exitoProducts", JSON.stringify(exitoProducts));
+  }
+
+  if (!(await client.get("fallabelaProducts"))) {
+    console.log("Saving falabella products to the Redis database...");
+    const fallabelaProducts = await getFalabellaProducts();
+    // Save the products to the Redis database
+    await client.set("fallabelaProducts", JSON.stringify(fallabelaProducts));
+  }
+
+  if (!(await client.get("jumboPdf"))) {
+    console.log("Saving jumbo pdf to the Redis database...");
+    const jumboPdf = await getJumboPdf();
+    // Save the products to the Redis database
+    await client.set("jumboPdf", jumboPdf);
+  }
+
+  if (!(await client.get("alkostoPdf"))) {
+    console.log("Saving alkosto pdf to the Redis database...");
+    const alkostoPdf = await getAlkostoPdf();
+    // Save the products to the Redis database
+    await client.set("alkostoPdf", alkostoPdf);
+  }
+
   console.log("All products saved successfully!");
 };
 
