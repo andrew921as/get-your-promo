@@ -84,23 +84,32 @@ app.get("/all", async (req, res) => {
 });
 
 app.get("/resave", async (req, res) => {
-  const exitoProducts = await getExitoProducts();
-  // Save the products to the Redis database
-  await client.set("exitoProducts", JSON.stringify(exitoProducts));
+  // Get store to resave from query params
+  const store = req.query.store;
 
-  const fallabelaProducts = await getFalabellaProducts();
-  // Save the products to the Redis database
-  await client.set("fallabelaProducts", JSON.stringify(fallabelaProducts));
-
-  const jumboPdf = await getJumboPdf();
-  // Save the products to the Redis database
-  await client.set("jumboPdf", jumboPdf);
-
-  const alkostoPdf = await getAlkostoPdf();
-  // Save the products to the Redis database
-  await client.set("alkostoPdf", alkostoPdf);
-
-  res.send("Products were saved to the database.");
+  if (store === "exito") {
+    const exitoProducts = await getExitoProducts();
+    // Save the products to the Redis database
+    await client.set("exitoProducts", JSON.stringify(exitoProducts));
+    res.send("Exito products were saved to the database.");
+  } else if (store === "falabella") {
+    const fallabelaProducts = await getFalabellaProducts();
+    // Save the products to the Redis database
+    await client.set("fallabelaProducts", JSON.stringify(fallabelaProducts));
+    res.send("Falabella products were saved to the database.");
+  } else if (store === "jumbo") {
+    const jumboPdf = await getJumboPdf();
+    // Save the products to the Redis database
+    await client.set("jumboPdf", jumboPdf);
+    res.send("Jumbo pdf was saved to the database.");
+  } else if (store === "alkosto") {
+    const alkostoPdf = await getAlkostoPdf();
+    // Save the products to the Redis database
+    await client.set("alkostoPdf", alkostoPdf);
+    res.send("Alkosto pdf was saved to the database.");
+  } else {
+    res.send("Invalid store name.");
+  }
 });
 
 const saveAllProducts = async () => {
@@ -137,5 +146,9 @@ const saveAllProducts = async () => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(
+    "Database is running on: ",
+    process.env.REDIS_URL || "localhost:6379"
+  );
   saveAllProducts();
 });
